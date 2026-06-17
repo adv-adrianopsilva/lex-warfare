@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisão Final 19 dias · PCDF Delegado 2026</title>
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--yellow:#d29922;--red:#f85149;--purple:#bc8cff;--orange:#f0883e;--pink:#f778ba;--r:8px;--shadow:0 2px 12px rgba(0,0,0,.5)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+input,textarea,button{font-family:inherit}
+
+#header{background:linear-gradient(135deg,#1a1f2e,#0d1117);padding:16px 16px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+#header h1{font-size:1.15rem;font-weight:700}
+#header h2{font-size:.78rem;color:var(--muted);margin-top:2px}
+.pbar-wrap{margin-top:10px;display:flex;align-items:center;gap:10px}
+.pbar-bg{flex:1;background:var(--surface2);border-radius:20px;height:7px;overflow:hidden}
+.pbar-fill{background:linear-gradient(90deg,#58a6ff,#3fb950);height:100%;border-radius:20px;transition:width .5s}
+#pbar-pct{font-size:.75rem;color:var(--muted);min-width:32px;text-align:right}
+#dias-restantes{font-size:.72rem;color:var(--red);font-weight:600;margin-top:5px;text-align:center}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px}
+@media(max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px;text-align:center}
+.stat-val{font-size:1.3rem;font-weight:700;color:var(--accent)}
+.stat-lbl{font-size:.68rem;color:var(--muted);margin-top:2px}
+
+.weight-bar{margin:0 12px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.weight-title{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.weight-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:.72rem}
+.weight-lbl{min-width:90px;color:var(--text)}
+.weight-bg{flex:1;background:var(--surface2);border-radius:10px;height:6px;overflow:hidden}
+.weight-fill{height:100%;border-radius:10px;transition:width .4s}
+.weight-val{min-width:30px;text-align:right;color:var(--muted);font-size:.68rem}
+
+#timer-widget{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin:0 12px 10px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+#timer-display{font-size:2rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent);min-width:92px;letter-spacing:1px}
+#timer-display.running{color:var(--green)}
+#timer-display.urgent{color:var(--red);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.timer-info{flex:1;min-width:0}
+#timer-label{font-size:.72rem;color:var(--muted)}
+#timer-bloco{font-size:.8rem;color:var(--text);font-weight:500;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.timer-btns{display:flex;gap:6px;flex-shrink:0}
+
+.btn{border:none;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;padding:6px 12px;transition:.15s all;display:inline-flex;align-items:center;gap:4px}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#79b8ff}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--border)}
+.btn-green{background:var(--green);color:#000}
+.btn-green:hover{background:#56d364}
+.btn-sm{padding:4px 8px;font-size:.74rem}
+.btn-done{background:var(--surface2);color:var(--green);border:1px solid var(--green);cursor:default}
+
+.days-section{padding:0 12px 60px}
+.phase-sep{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:14px 0 6px;border-top:1px solid var(--border);margin-top:4px}
+.phase-sep:first-child{border-top:none;margin-top:0}
+.phase-sep .phase-reason{display:block;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:.68rem;margin-top:2px;opacity:.8}
+
+.day-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;border-left:3px solid var(--border);overflow:hidden;transition:border-color .2s}
+.day-card.is-today{border-color:var(--accent);border-left-color:var(--accent);box-shadow:0 0 0 1px rgba(88,166,255,.13)}
+.day-card.is-done{opacity:.65;border-left-color:var(--green)!important}
+.day-card.is-past:not(.is-done){opacity:.55}
+
+.day-hdr{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none}
+.day-hdr:hover{background:rgba(255,255,255,.03)}
+.d-num{font-size:.9rem;font-weight:700;color:var(--muted);min-width:22px}
+.d-date{font-size:.75rem;color:var(--muted);min-width:72px}
+.d-badge{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.d-qinfo{font-size:.72rem;color:var(--muted);margin-left:auto;white-space:nowrap}
+.d-dots{display:flex;gap:3px;margin-left:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);transition:.2s all}
+.dot.done{background:var(--green);border-color:var(--green)}
+.chevron{color:var(--muted);font-size:.75rem;transition:transform .2s;margin-left:4px}
+.day-card.expanded .chevron{transform:rotate(180deg)}
+.today-tag{font-size:.62rem;background:var(--accent);color:#000;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px}
+
+.day-body{display:none;padding:0 12px 14px;border-top:1px solid var(--border)}
+.day-card.expanded .day-body{display:block}
+
+.bloco{background:var(--surface2);border-radius:6px;padding:10px 11px;margin-top:10px}
+.bloco.bloco-done{opacity:.6}
+.bloco-top{display:flex;align-items:flex-start;gap:7px}
+.bloco-n{font-size:.68rem;font-weight:700;color:var(--muted);padding-top:1px;min-width:16px}
+.bloco-txt{font-size:.8rem;line-height:1.5;flex:1}
+.bloco-check{flex-shrink:0;width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:transparent;cursor:pointer;appearance:none;position:relative;margin-top:1px}
+.bloco-check:checked{background:var(--green);border-color:var(--green)}
+.bloco-check:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:700}
+.bloco-actions{display:flex;align-items:center;gap:7px;margin-top:7px;flex-wrap:wrap}
+.timer-start-btn{font-size:.72rem;padding:3px 8px}
+.timer-start-btn.active-timer{background:#1a4731;color:var(--green);border:1px solid var(--green)}
+
+.q-input{width:44px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:3px 5px;font-size:.78rem;text-align:center}
+.q-input:focus{outline:none;border-color:var(--accent)}
+.q-bar-bg{width:60px;background:var(--border);border-radius:6px;height:4px;overflow:hidden}
+.q-bar-fill{height:100%;background:var(--accent);border-radius:6px;transition:width .3s}
+
+.notas-wrap{margin-top:12px}
+.notas-lbl{font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.notas-ta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.8rem;padding:8px 10px;min-height:64px;resize:vertical;line-height:1.5}
+.notas-ta:focus{outline:none;border-color:var(--accent)}
+.notas-ta::placeholder{color:var(--muted)}
+
+.day-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.revisao-txt{font-size:.72rem;color:var(--muted)}
+.revisao-txt b{color:var(--yellow)}
+
+.b-CPP{background:#1a4e79;color:#aecce8}
+.b-PENAL{background:#154360;color:#85c1e9}
+.b-LPE{background:#7e5109;color:#f0b27a}
+.b-CONST{background:#1a5e35;color:#82e0aa}
+.b-ADM{background:#0e6655;color:#76d7c4}
+.b-ML{background:#784212;color:#f5cba7}
+.b-INST{background:#7d6608;color:#f9e79f}
+.b-CIVIL{background:#4a235a;color:#d7bde2}
+.b-TRIB{background:#3d4345;color:#ccc}
+.b-AMB{background:#145a32;color:#82e0aa}
+.b-SIM{background:#1a6e3c;color:#82e0aa}
+.b-ERROS{background:#922b21;color:#f1948a}
+.b-JURIS{background:#6c3483;color:#c39bd3}
+.b-REV{background:#333;color:#aaa}
+.b-VESP{background:#922b21;color:#f1948a}
+
+.bloco-files{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)}
+.file-chip{font-size:.66rem;background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.25);color:var(--accent);border-radius:4px;padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;cursor:pointer;transition:.15s background}
+.file-chip:hover{background:rgba(88,166,255,.2)}
+.file-chip.q-chip{background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.25);color:var(--green)}
+
+#toast{position:fixed;bottom:20px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 16px;font-size:.82rem;box-shadow:var(--shadow);z-index:999;transform:translateX(120%);transition:transform .3s}
+#toast.show{transform:translateX(0)}
+#toast.t-ok{border-color:var(--green)}
+#toast.t-info{border-color:var(--accent)}
+#toast.t-warn{border-color:var(--yellow)}
+
+#fab-caderno{position:fixed;bottom:20px;left:16px;background:var(--purple);color:#000;width:44px;height:44px;border-radius:50%;border:none;font-size:1.1rem;cursor:pointer;box-shadow:var(--shadow);z-index:300;display:flex;align-items:center;justify-content:center;transition:.2s all}
+#fab-caderno:hover{transform:scale(1.1)}
+#modal-caderno{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center;padding:16px}
+#modal-caderno.open{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:600px;max-height:85vh;display:flex;flex-direction:column}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+.modal-hdr h3{font-size:1rem;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer}
+.modal-body{overflow-y:auto;padding:12px 16px;flex:1}
+.cad-entry{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.cad-entry:last-child{border-bottom:none}
+.cad-dia{font-size:.75rem;font-weight:700;color:var(--accent);margin-bottom:4px}
+.cad-txt{font-size:.82rem;white-space:pre-wrap;color:var(--text);line-height:1.55}
+.cad-vazio{font-size:.85rem;color:var(--muted);text-align:center;padding:20px 0}
+
+.golden-rule{margin:0 12px 10px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--r);padding:10px 14px}
+.golden-rule h4{font-size:.78rem;font-weight:700;color:var(--red);margin-bottom:4px}
+.golden-rule p{font-size:.72rem;color:var(--muted);line-height:1.5}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>⚔️ Revisão Final 19 dias · PCDF Delegado 2026</h1>
+  <h2>16/06 → 04/07 · Prova: 05/07/2026 · Fundamentado em análise estatística</h2>
+  <div class="pbar-wrap">
+    <div class="pbar-bg"><div class="pbar-fill" id="pbar" style="width:0%"></div></div>
+    <span id="pbar-pct">0%</span>
+  </div>
+  <div id="dias-restantes"></div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val" id="s-dias">0/19</div><div class="stat-lbl">Dias concluídos</div></div>
+  <div class="stat"><div class="stat-val" id="s-questoes">0</div><div class="stat-lbl">Questões feitas</div></div>
+  <div class="stat"><div class="stat-val" id="s-sims">0/1</div><div class="stat-lbl">Simulados</div></div>
+  <div class="stat"><div class="stat-val" id="s-blocos">0</div><div class="stat-lbl">Blocos concluídos</div></div>
+</div>
+
+<div class="weight-bar" id="weight-section"></div>
+
+<div class="golden-rule">
+  <h4>⚠ Regra de ouro — penalização -1 por erro</h4>
+  <p>Na prova real: item com menos de 70% de certeza = deixar em branco. O candidato que erra menos vence, não o que marca mais. Meta: 80 acertos + 10 erros + 30 em branco = 70 pts líquidos (corte: 36).</p>
+</div>
+
+<div id="timer-widget">
+  <div id="timer-display">2:00:00</div>
+  <div class="timer-info">
+    <div id="timer-label">Nenhum bloco ativo</div>
+    <div id="timer-bloco">Selecione um bloco para iniciar</div>
+  </div>
+  <div class="timer-btns">
+    <button class="btn btn-primary" id="btn-playpause" onclick="toggleTimer()">▶ Iniciar</button>
+    <button class="btn btn-ghost btn-sm" onclick="resetTimer()">↺</button>
+  </div>
+</div>
+
+<div class="days-section" id="days-list"></div>
+
+<button id="fab-caderno" onclick="openCaderno()" title="Caderno de Erros Global">📝</button>
+
+<div id="modal-caderno">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <h3>📝 Caderno de Erros — Todas as Anotações</h3>
+      <button class="modal-close" onclick="closeCaderno()">✕</button>
+    </div>
+    <div class="modal-body" id="caderno-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SCHEDULE = [
+  {dia:1,data:'16/06',dw:'SEG',tipo:'CPP',badge:'b-CPP',blc:[
+    'CPP — Inquérito + Prisões + Provas (arq. 01-03): reler os 3 campeões de incidência. Vedação de ofício (Pacote Anticrime), cadeia de custódia (HC 653.515), Tema 280 (domicílio)',
+    'Refazer lote 04 (36 itens C/E) — foco nos erros. Reler mapa-relâmpago dos 3 arquivos',
+    'Caderno de Erros: anotar fundamento de cada item errado do lote 04. Revisão espaçada D+25'
+  ],qm:36,rev:'Resgate urgente — 25 dias sem revisão'},
+
+  {dia:2,data:'17/06',dw:'TER',tipo:'CPP',badge:'b-CPP',blc:[
+    'CPP — Ação Penal e ANPP (arq. 05) + Competência (arq. 06): ANPP como direito subjetivo (Tema 1.098/STJ), foro por prerrogativa (HC 232.627/DF, 2025)',
+    'CPP — Habeas Corpus e Nulidades (arq. 08): nulidades absolutas × relativas, coisa julgada, MS em matéria criminal',
+    'Refazer lotes 07, 09 (62 itens C/E) + caderno de erros'
+  ],qm:62,rev:'Rev. Inquérito/Prisões/Provas (D-1)'},
+
+  {dia:3,data:'18/06',dw:'QUA',tipo:'CPP+PENAL',badge:'b-PENAL',blc:[
+    'CPP — Provas em Espécie + Recursos + Júri (arq. 10-12): Tema 1.068 (execução imediata júri), non reformatio in pejus, S. 160',
+    'Penal Geral — Aplicação da Lei Penal + Fato Típico + Ilicitude (arq. 14-15, 17): insignificância (HC 84.412 "MARI"), art. 25 p.ú. (Pacote Anticrime)',
+    'Refazer lotes 13, 16, 18 (~90 itens C/E) + caderno de erros'
+  ],qm:90,rev:'Rev. Ação Penal/Competência/HC (D-1)'},
+
+  {dia:4,data:'19/06',dw:'QUI',tipo:'PENAL',badge:'b-PENAL',blc:[
+    'Penal — Culpabilidade + Concurso de Pessoas (arq. 19-20): actio libera in causa, teoria do domínio do fato (AP 470 — posição hierárquica NÃO basta)',
+    'Penal — Concurso de Crimes + Teoria da Pena e Prescrição (arq. 21-22): dosimetria trifásica, prescrição (Lei 12.234/10), art. 75 (40 anos)',
+    'Refazer lote 23 (36 itens) — foco: prescrição, que é campeão de incidência e lacuna crítica anterior'
+  ],qm:36,rev:'Rev. Provas em Espécie/Recursos (D-1)'},
+
+  {dia:5,data:'20/06',dw:'SEX',tipo:'PENAL ESP.',badge:'b-PENAL',blc:[
+    'Crimes contra a Vida (arq. 24): feminicídio autônomo (Lei 14.994/2024, art. 121-A — irretroativo, 20-40 anos), ADPF 54 (anencefalia)',
+    'Crimes contra o Patrimônio + Adm. Pública (arq. 26, 27): arma no roubo (branca/fogo/restrito), verbos dos crimes funcionais (exigir × solicitar)',
+    'Refazer lotes 25, 28 (64 itens C/E) + caderno de erros'
+  ],qm:64,rev:'Rev. Culpabilidade/Concursos/Prescrição (D-1)'},
+
+  {dia:6,data:'21/06',dw:'SÁB',tipo:'PENAL+LPE',badge:'b-LPE',blc:[
+    'Dignidade Sexual + Fé Pública + Lesão + Liberdade Individual (arq. 33, 36, 37): S. 593 (vulnerabilidade absoluta), injúria racial = racismo (Lei 14.532/23), stalking 147-A',
+    'LPE — Drogas + Hediondos + Tortura + ORCRIM (arq. 29, 30): Tema 506 (cannabis = infração adm., 40g), HC 118.533 (privilegiado ≠ hediondo), colaboração premiada',
+    'Refazer lotes 34, 32 (~66 itens C/E) + caderno de erros'
+  ],qm:66,rev:'Rev. Crimes Vida/Patrimônio/Adm (D-1)'},
+
+  {dia:7,data:'22/06',dw:'DOM',tipo:'LPE+CONST',badge:'b-CONST',blc:[
+    'LPE — Maria da Penha + Desarmamento + Abuso + Lavagem + CTB + ECA (arq. 31, 38): S. 542/600, dolo específico abuso, lavagem = qualquer infração (Lei 12.683/12)',
+    'Constitucional — Segurança Pública + Direitos Fundamentais (arq. 39, 40): art. 144, Temas 541/656, titularidade ampliativa, núcleo processual-penal do art. 5º',
+    'Refazer lotes 32 (restante), 41 (36 itens) + caderno de erros'
+  ],qm:60,rev:'Rev. Dignidade Sexual/LPE núcleo quente (D-1)'},
+
+  {dia:8,data:'23/06',dw:'SEG',tipo:'CONST',badge:'b-CONST',blc:[
+    'Remédios Constitucionais (arq. 42): Súmulas 266-271 STF, MI 670/708/712, Lei 13.300/2016, HD (S. 2/STJ)',
+    'Organização dos Poderes + CPI + Controle de Constitucionalidade (arq. 44, 46): MS 23.452 (CPI pode quebrar sigilos), abstrativização (ADI 3406/3470 — aceita) × transcendência (rejeitada), modulação 2/3',
+    'Refazer lotes 43, 45, 47 (~101 itens C/E) + caderno de erros'
+  ],qm:101,rev:'Rev. Maria da Penha/Lavagem/Seg. Pública (D-1)'},
+
+  {dia:9,data:'24/06',dw:'TER',tipo:'CONST+ADM',badge:'b-ADM',blc:[
+    'Constitucional — Dir. Políticos/Nacionalidade + Tratados (arq. 48, 63): EC 131/2023 (perda nacionalidade), Tema 370 (suspensão autoaplicável), Mérida/Palermo/Viena/Roma/CADH',
+    'Administrativo — Princípios + Poderes + Atos (arq. 50, 51): Tema 532 (delegação pol. polícia a estatais), S. 346/473, SV 3 + RE 636.553 (aposentadoria = ato complexo, TCU 5 anos)',
+    'Refazer lote 49 (35 itens) + caderno de erros Constitucional completo'
+  ],qm:35,rev:'Rev. Remédios/CPI/Controle de Const. (D-1)'},
+
+  {dia:10,data:'25/06',dw:'QUA',tipo:'ADM',badge:'b-ADM',blc:[
+    'Agentes Públicos (arq. 52): ADI 837 (ascensão inconstitucional), Tema 476 (fato consumado NÃO), Tema 161 (direito subjetivo dentro das vagas), 4 hipóteses de perda do estável',
+    'Improbidade Administrativa (arq. 54): Tema 1199 (4 teses — dolo, irretroatividade, nova lei, prescrição), Tema 897 (ressarcimento doloso imprescritível), comunicação penal (art. 21 §4º)',
+    'Refazer lotes 53, 55 (72 itens C/E) + caderno de erros'
+  ],qm:72,rev:'Rev. Dir. Políticos/Tratados/Princípios Adm (D-1)'},
+
+  {dia:11,data:'26/06',dw:'QUI',tipo:'ADM',badge:'b-ADM',blc:[
+    'Licitações — Lei 14.133/2021 (arq. 56): 5 modalidades (extinto convite/tomada, criado diálogo), inversão de fases como REGRA, dispensa TAXATIVA × inexigibilidade EXEMPLIFICATIVA',
+    'Processo Administrativo + Lei Anticorrupção (arq. 58): reformatio in pejus PERMITIDA recurso (art. 64) × VEDADA revisão (art. 65), resp. OBJETIVA PJ (Lei 12.846/13), acordo de leniência',
+    'Refazer lotes 57, 59 (72 itens C/E) + caderno de erros'
+  ],qm:72,rev:'Rev. Agentes/Improbidade (D-1)'},
+
+  {dia:12,data:'27/06',dw:'SEX',tipo:'ML+INST',badge:'b-ML',blc:[
+    'Medicina Legal completa (arq. 61): Traumatologia (energias mecânicas, Protocolo de Istambul), Tanatologia (cronotanatognose, Protocolo de Minnesota), Asfixiologia, Sexologia, Toxicologia',
+    'Leg. Institucional PCDF (arq. 65) + LONPC/SUSP (arq. 67): Lei 15.047/24 (sanções, TAC, PADS), LC 840/11 (Títulos V e VI), LONPC art. 1/5/26, SUSP art. 9',
+    'Refazer lotes 62, 66 (~70 itens C/E) + caderno de erros'
+  ],qm:70,rev:'Rev. Licitações/Proc. Adm./Anticorrupção (D-1)'},
+
+  {dia:13,data:'28/06',dw:'SÁB',tipo:'CIVIL+TRIB',badge:'b-CIVIL',blc:[
+    'Civil/Empresarial — revisão completa (arq. 69): LINDB (arts. 1-6 + Dec. 9.830/19), pessoas, negócio jurídico, prescrição/decadência, responsabilidade civil, teoria da empresa, falência',
+    'Tributário — revisão completa (arq. 71): conceito/espécies de tributo, obrigação/crédito tributário, lançamento, suspensão/extinção/exclusão, crimes 8.137/90, EC 132/2023',
+    'Refazer lotes 70, 72 (~70 itens C/E) + caderno de erros'
+  ],qm:70,rev:'Rev. Med. Legal/Leg. Institucional (D-1)'},
+
+  {dia:14,data:'29/06',dw:'DOM',tipo:'AMB+DF',badge:'b-AMB',blc:[
+    'Ambiental — revisão completa (arq. 73): Lei 9.605/98 (crimes ambientais, resp. penal PJ), art. 225 CF, licenciamento, SISNAMA/SNUC, princípios (prevenção × precaução)',
+    'Conhecimentos do DF / PDPM / Primeiros Socorros — MATERIAL NOVO: LC 94/98 (RIDE), Dec. 7.469/11, PDPM, primeiros socorros (engasgo, sangramentos, fraturas, queimaduras, desmaio, convulsões)',
+    'Refazer lote 74 + estudar material novo do DF — alto custo-benefício (decoreba pura)'
+  ],qm:50,rev:'Rev. Civil/Empresarial/Tributário (D-1)'},
+
+  {dia:15,data:'30/06',dw:'SEG',tipo:'SIMULADO',badge:'b-SIM',blc:[
+    '🎯 SIMULADO FINAL — 120 itens C/E cronometrado (3h30): Penal 24 + CPP 22 + Const 18 + Adm 16 + ML 10 + Civil 8 + Trib 6 + DF 6 + Amb 5 + Emp 5',
+    'Correção completa + alimentar Caderno de Erros: anotar fundamento de cada erro, classificar por matéria',
+    'Análise estatística: % acerto por matéria, identificar os 10 pontos mais frágeis para revisão cirúrgica nos próximos 4 dias'
+  ],qm:120,rev:'Simulado na distribuição real da prova'},
+
+  {dia:16,data:'01/07',dw:'TER',tipo:'CADERNO',badge:'b-ERROS',blc:[
+    'Reciclar TODOS os itens errados do projeto inteiro (lotes 04-74 + simulados 60, 75 + simulado do D15)',
+    'Reler mapas-relâmpago de TODOS os arquivos Feynman (última seção de cada arquivo)',
+    'Identificar os 10 pontos mais frágeis por matéria — esses serão o foco exclusivo dos dias 17-18'
+  ],qm:0,rev:'Caderno de Erros — ciclo integral'},
+
+  {dia:17,data:'02/07',dw:'QUA',tipo:'JURIS+PEÇA',badge:'b-JURIS',blc:[
+    '30 jurisprudências quentes (índice consolidado, seção 2) — articular fundamento de CADA tese em voz alta (Feynman). Ler: 18 núcleo penal + 5 Constitucional + 7 Administrativo',
+    'Peça P3 cronometrada — Relatório de Inquérito com representação por prisão preventiva (CPP + Lei 7.960/89)',
+    'Revisão cirúrgica: os 10 pontos mais frágeis identificados no D16'
+  ],qm:0,rev:'30 teses quentes + peça P3'},
+
+  {dia:18,data:'03/07',dw:'QUI',tipo:'REVISÃO',badge:'b-REV',blc:[
+    'Revisão só do que errou nos simulados + caderno: nada novo, só reforço',
+    'Refazer lotes errados das 4 matérias da oral (Penal, CPP, Constitucional, Administrativo)',
+    'Lei seca essencial: art. 5º CF (15 primeiros incisos) + art. 302/312/313 CPP + art. 121/121-A/129 CP + arts. 1-5 Lei 15.047/24'
+  ],qm:0,rev:'Revisão cirúrgica — erros recorrentes'},
+
+  {dia:19,data:'04/07',dw:'SEX',tipo:'VÉSPERA',badge:'b-VESP',blc:[
+    '🌟 Mapas-relâmpago das 4 matérias da oral (Penal, CPP, Constitucional, Administrativo) — leitura passiva, sem tensão',
+    'Lista das 30 jurisprudências quentes — última leitura. Apenas reconhecimento, não aprofundamento',
+    'DESCANSO: logística da prova (documento, caneta, local, horário, transporte), alimentação leve, DORMIR CEDO'
+  ],qm:0,rev:'Véspera — leitura leve APENAS'},
+];
+
+const PHASES = [
+  {label:'FASE 1 — CPP + Penal · Resgate urgente (25 dias sem revisão)',reason:'Peso combinado: 46/120 itens (38%). Curva de esquecimento no limite.',dias:[1,2,3,4],color:'var(--accent)'},
+  {label:'FASE 2 — Penal Especial + LPE + Constitucional',reason:'Penal Especial: 23-25 dias. Constitucional: 18-23 dias. Peso combinado: 42/120 (35%).',dias:[5,6,7,8],color:'var(--green)'},
+  {label:'FASE 3 — Constitucional (fim) + Administrativo + Med. Legal + Leg. Inst.',reason:'Admin: 14-18 dias. Med Legal e Leg. Institucional: 12 dias. Peso: 26/120 + leg. transversal.',dias:[9,10,11,12],color:'var(--purple)'},
+  {label:'FASE 4 — Disciplinas complementares + gap crítico (Conhecimentos DF)',reason:'Civil/Empresarial + Tributário + Ambiental: 10 dias, timing ideal. Conhecimentos DF: GAP ZERO.',dias:[13,14],color:'var(--orange)'},
+  {label:'FASE 5 — Consolidação e simulados finais',reason:'Últimos 5 dias: zero matéria nova. Só revisão, questões e caderno de erros.',dias:[15,16,17,18,19],color:'var(--pink)'},
+];
+
+const FILES = {
+  '1-0':['01_CPP_Inquerito_Policial_Feynman.md','02_CPP_Prisoes_Cautelares_Feynman.md','03_CPP_Prova_Feynman.md'],
+  '1-1':['04_CPP_Questoes_CEBRASPE_Comentadas.md'],
+  '2-0':['05_CPP_Acao_Penal_ANPP_Feynman.md','06_CPP_Competencia_Feynman.md'],
+  '2-1':['08_CPP_Habeas_Corpus_Nulidades_Feynman.md'],
+  '2-2':['07_CPP_Questoes_CEBRASPE_Comentadas_2.md','09_CPP_Questoes_CEBRASPE_Comentadas_3.md'],
+  '3-0':['10_CPP_Procedimentos_Juri_Feynman.md','11_CPP_Provas_em_Especie_Feynman.md','12_CPP_Recursos_Feynman.md'],
+  '3-1':['14_DPenal_Aplicacao_Lei_Penal_Feynman.md','15_DPenal_Fato_Tipico_Feynman.md','17_DPenal_Ilicitude_Feynman.md'],
+  '3-2':['13_CPP_Questoes_CEBRASPE_Comentadas_4.md','16_DPenal_Questoes_CEBRASPE_Comentadas_1.md','18_DPenal_Questoes_CEBRASPE_Comentadas_2.md'],
+  '4-0':['19_DPenal_Culpabilidade_Feynman.md'],
+  '4-1':['21_DPenal_Concurso_Crimes_Feynman.md','22_DPenal_Teoria_Pena_Prescricao_Feynman.md'],
+  '4-2':['23_DPenal_Questoes_CEBRASPE_Comentadas_3.md'],
+  '5-0':['24_DPenal_Crimes_Contra_Vida_Feynman.md'],
+  '5-1':['26_DPenal_Crimes_Patrimonio_Feynman.md','27_DPenal_Crimes_Administracao_Publica_Feynman.md'],
+  '5-2':['25_DPenal_Questoes_CEBRASPE_Comentadas_4.md','28_DPenal_Questoes_CEBRASPE_Comentadas_5.md'],
+  '6-0':['33_DPenal_Dignidade_Sexual_Fe_Publica_Feynman.md','36_DPenal_Lesao_Corporal_Crimes_Honra_Feynman.md','37_DPenal_Crimes_Liberdade_Individual_Feynman.md'],
+  '6-1':['29_LPE_Drogas_Feynman.md','30_LPE_Hediondos_Tortura_ORCRIM_Feynman.md'],
+  '6-2':['34_DPenal_Questoes_CEBRASPE_Comentadas_6.md','32_LPE_Questoes_CEBRASPE_Comentadas_1.md'],
+  '7-0':['31_LPE_Maria_Penha_Desarmamento_Abuso_Feynman.md','38_LPE_Lavagem_Transito_ECA_Feynman.md'],
+  '7-1':['39_DConst_Seguranca_Publica_Policia_Judiciaria_Feynman.md','40_DConst_Direitos_Fundamentais_Feynman.md'],
+  '7-2':['32_LPE_Questoes_CEBRASPE_Comentadas_1.md','41_DConst_Questoes_CEBRASPE_Comentadas_1.md'],
+  '8-0':['42_DConst_Remedios_Constitucionais_Feynman.md'],
+  '8-1':['44_DConst_Organizacao_Poderes_CPI_Feynman.md','46_DConst_Controle_Constitucionalidade_Feynman.md'],
+  '8-2':['43_DConst_Questoes_CEBRASPE_Comentadas_2.md','45_DConst_Questoes_CEBRASPE_Comentadas_3.md','47_DConst_Questoes_CEBRASPE_Comentadas_4_Avancadas.md'],
+  '9-0':['48_DConst_Direitos_Politicos_Nacionalidade_Feynman.md','63_DConst_Tratados_Convencoes_Internacionais_Feynman.md'],
+  '9-1':['50_DAdm_Principios_Poderes_Administrativos_Feynman.md','51_DAdm_Atos_Administrativos_Feynman.md'],
+  '9-2':['49_DConst_Questoes_CEBRASPE_Comentadas_5_Avancadas.md'],
+  '10-0':['52_DAdm_Agentes_Publicos_Feynman.md'],
+  '10-1':['54_DAdm_Improbidade_Administrativa_Feynman.md'],
+  '10-2':['53_DAdm_Questoes_CEBRASPE_Comentadas_1_Avancadas.md','55_DAdm_Questoes_CEBRASPE_Comentadas_2_Improbidade_Avancadas.md'],
+  '11-0':['56_DAdm_Licitacoes_Lei_14133_Feynman.md'],
+  '11-1':['58_DAdm_Processo_Administrativo_Anticorrupcao_Feynman.md'],
+  '11-2':['57_DAdm_Questoes_CEBRASPE_Comentadas_3_Licitacoes_Avancadas.md','59_DAdm_Questoes_CEBRASPE_Comentadas_4_Proc_Adm_Anticorrupcao_Avancadas.md'],
+  '12-0':['61_MedLegal_Medicina_Legal_Feynman.md'],
+  '12-1':['65_Leg_Institucional_PCDF_Lei15047_LC840_Feynman.md','67_LONPC_SUSP_Feynman.md'],
+  '12-2':['62_MedLegal_Questoes_CEBRASPE_Comentadas_1_Avancadas.md','66_Leg_Institucional_Questoes_CEBRASPE_Avancadas.md'],
+  '13-0':['69_Civil_Empresarial_Feynman.md'],
+  '13-1':['71_Tributario_Feynman.md'],
+  '13-2':['70_Civil_Empresarial_Questoes_CEBRASPE_Avancadas.md','72_Tributario_Questoes_CEBRASPE_Avancadas.md'],
+  '14-0':['73_Ambiental_Feynman.md'],
+  '14-1':['76_Conhecimentos_DF_PDPM_Primeiros_Socorros_Feynman.md'],
+  '14-2':['74_Ambiental_Questoes_CEBRASPE_Avancadas.md'],
+  '15-0':['60_Simulado_Misto_CEBRASPE_60itens.md','75_Simulado_Misto_II_Temas_Recentes.md'],
+  '17-0':['35_INDICE_CONSOLIDADO_Revisao_3.md'],
+  '19-0':['35_INDICE_CONSOLIDADO_Revisao_3.md'],
+};
+
+const WEIGHTS = [
+  {lbl:'Penal + LPE',itens:24,pct:20,color:'#85c1e9'},
+  {lbl:'Proc. Penal',itens:22,pct:18.3,color:'#aecce8'},
+  {lbl:'Constitucional',itens:18,pct:15,color:'#82e0aa'},
+  {lbl:'Administrativo',itens:16,pct:13.3,color:'#76d7c4'},
+  {lbl:'Med. Legal',itens:10,pct:8.3,color:'#f5cba7'},
+  {lbl:'Civil',itens:8,pct:6.7,color:'#d7bde2'},
+  {lbl:'Tributário',itens:6,pct:5,color:'#ccc'},
+  {lbl:'Conh. DF',itens:6,pct:5,color:'#f9e79f'},
+  {lbl:'Ambiental',itens:5,pct:4.2,color:'#82e0aa'},
+  {lbl:'Empresarial',itens:5,pct:4.2,color:'#d7bde2'},
+];
+
+const START_DATE = new Date('2026-06-16T00:00:00');
+const EXAM_DATE  = new Date('2026-07-05T00:00:00');
+const KEY = 'pcdf_rev19_v1';
+let STATE;
+
+function loadState(){
+  try{ STATE = JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ STATE={}; }
+  SCHEDULE.forEach(d=>{
+    if(!STATE[d.dia]) STATE[d.dia]={blocos:[false,false,false],questoes:0,notas:'',done:false};
+  });
+  if(!STATE.timer) STATE.timer={running:false,remaining:7200,diaAtivo:null,blocoAtivo:null,startedAt:null};
+  if(STATE.timer.running && STATE.timer.startedAt){
+    const elapsed = Math.floor((Date.now()-STATE.timer.startedAt)/1000);
+    STATE.timer.remaining = Math.max(0, STATE.timer.remaining - elapsed);
+    STATE.timer.startedAt = Date.now();
+    if(STATE.timer.remaining<=0) STATE.timer.running=false;
+  }
+}
+
+function saveState(){ localStorage.setItem(KEY, JSON.stringify(STATE)); }
+
+let timerInterval=null;
+function fmtTime(s){
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;
+  return h+':'+String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+}
+
+function updateTimerUI(){
+  const td=document.getElementById('timer-display'),t=STATE.timer;
+  td.textContent=fmtTime(t.remaining);
+  td.className='';
+  if(t.running) td.classList.add(t.remaining<=600?'urgent':'running');
+  document.getElementById('btn-playpause').textContent=t.running?'⏸ Pausar':(t.remaining<7200?'▶ Retomar':'▶ Iniciar');
+  document.getElementById('btn-playpause').className='btn '+(t.running?'btn-ghost':'btn-primary');
+  if(t.diaAtivo){
+    const d=SCHEDULE.find(x=>x.dia===t.diaAtivo);
+    document.getElementById('timer-label').textContent='Dia '+t.diaAtivo+' · '+(d?.data||'')+' — Bloco '+(( t.blocoAtivo||0)+1);
+    document.getElementById('timer-bloco').textContent=(d?.blc[t.blocoAtivo||0]||'').substring(0,60)+'...';
+  } else {
+    document.getElementById('timer-label').textContent='Nenhum bloco ativo';
+    document.getElementById('timer-bloco').textContent='Selecione ▶ em um bloco para iniciar';
+  }
+  document.querySelectorAll('.timer-start-btn').forEach(btn=>{
+    const dia=+btn.dataset.dia,bi=+btn.dataset.bi;
+    btn.classList.toggle('active-timer',t.running&&t.diaAtivo===dia&&t.blocoAtivo===bi);
+    btn.textContent=(t.running&&t.diaAtivo===dia&&t.blocoAtivo===bi)?'⏸ Pausar':'⏱ 2h';
+  });
+}
+
+function toggleTimer(){
+  const t=STATE.timer;
+  if(t.running){
+    clearInterval(timerInterval);timerInterval=null;
+    t.remaining=Math.max(0,t.remaining-Math.floor((Date.now()-t.startedAt)/1000));
+    t.running=false;t.startedAt=null;
+  } else {
+    if(t.remaining<=0) t.remaining=7200;
+    t.running=true;t.startedAt=Date.now();
+    startTimerInterval();
+  }
+  saveState();updateTimerUI();
+}
+
+function startBloco(dia,bi){
+  const t=STATE.timer;
+  if(t.running&&t.diaAtivo===dia&&t.blocoAtivo===bi){toggleTimer();return;}
+  clearInterval(timerInterval);timerInterval=null;
+  t.remaining=7200;t.running=true;t.diaAtivo=dia;t.blocoAtivo=bi;t.startedAt=Date.now();
+  startTimerInterval();
+  saveState();updateTimerUI();
+  toast('⏱ Timer — Dia '+dia+', Bloco '+(bi+1),'info');
+}
+
+function resetTimer(){
+  clearInterval(timerInterval);timerInterval=null;
+  STATE.timer={running:false,remaining:7200,diaAtivo:null,blocoAtivo:null,startedAt:null};
+  saveState();updateTimerUI();
+}
+
+function startTimerInterval(){
+  timerInterval=setInterval(()=>{
+    const t=STATE.timer;
+    if(!t.running){clearInterval(timerInterval);return;}
+    t.remaining=Math.max(0,t.remaining-Math.floor((Date.now()-t.startedAt)/1000));
+    t.startedAt=Date.now();
+    if(t.remaining<=0){
+      clearInterval(timerInterval);t.running=false;
+      saveState();updateTimerUI();
+      toast('🎉 Bloco concluído!','ok');
+    } else updateTimerUI();
+    if(t.remaining%60===0) saveState();
+  },1000);
+}
+
+function todayDia(){
+  const now=new Date();now.setHours(0,0,0,0);
+  return Math.floor((now-START_DATE)/86400000)+1;
+}
+
+function renderApp(){
+  renderWeights();
+  renderStats();
+  renderDays();
+  updateTimerUI();
+  updateCountdown();
+}
+
+function renderWeights(){
+  const el=document.getElementById('weight-section');
+  let html='<div class="weight-title">Peso estimado por disciplina na P1 (120 itens)</div>';
+  WEIGHTS.forEach(w=>{
+    html+='<div class="weight-row"><span class="weight-lbl">'+w.lbl+'</span><div class="weight-bg"><div class="weight-fill" style="width:'+w.pct+'%;background:'+w.color+'"></div></div><span class="weight-val">'+w.itens+'</span></div>';
+  });
+  el.innerHTML=html;
+}
+
+function updateCountdown(){
+  const now=new Date();now.setHours(0,0,0,0);
+  const days=Math.ceil((EXAM_DATE-now)/86400000);
+  const el=document.getElementById('dias-restantes');
+  if(days>0) el.textContent='⚠ '+days+' dia'+(days>1?'s':'')+' para a prova';
+  else if(days===0) el.textContent='📌 DIA DA PROVA!';
+  else el.textContent='✅ Prova realizada';
+}
+
+function renderStats(){
+  let done=0,q=0,sims=0,blocos=0;
+  SCHEDULE.forEach(d=>{
+    const s=STATE[d.dia];
+    if(s.done) done++;
+    q+=s.questoes||0;
+    s.blocos.forEach(b=>{if(b) blocos++;});
+    if(d.tipo==='SIMULADO'&&s.done) sims++;
+  });
+  const pct=Math.round((done/SCHEDULE.length)*100);
+  document.getElementById('pbar').style.width=pct+'%';
+  document.getElementById('pbar-pct').textContent=pct+'%';
+  document.getElementById('s-dias').textContent=done+'/19';
+  document.getElementById('s-questoes').textContent=q;
+  document.getElementById('s-sims').textContent=sims+'/1';
+  document.getElementById('s-blocos').textContent=blocos+'/'+(SCHEDULE.length*3);
+}
+
+function renderDays(){
+  const td=todayDia();
+  const list=document.getElementById('days-list');
+  list.innerHTML='';
+  PHASES.forEach(p=>{
+    const sep=document.createElement('div');
+    sep.className='phase-sep';
+    sep.innerHTML=p.label+'<span class="phase-reason">'+p.reason+'</span>';
+    sep.style.borderTopColor=p.color;
+    list.appendChild(sep);
+    p.dias.forEach(dn=>{
+      const d=SCHEDULE.find(x=>x.dia===dn);
+      if(d) list.appendChild(buildDayCard(d,td,p.color));
+    });
+  });
+}
+
+function buildDayCard(d,td,phaseColor){
+  const s=STATE[d.dia];
+  const isToday=(d.dia===td),isPast=(d.dia<td),isDone=s.done;
+  const div=document.createElement('div');
+  div.className='day-card'+(isToday?' is-today':'')+(isDone?' is-done':isPast&&!isDone?' is-past':'');
+  div.dataset.dia=d.dia;
+  div.style.borderLeftColor=isDone?'var(--green)':phaseColor;
+  if(isToday) div.classList.add('expanded');
+
+  const hdr=document.createElement('div');
+  hdr.className='day-hdr';
+  hdr.innerHTML='<span class="d-num">D'+String(d.dia).padStart(2,'0')+'</span>'+
+    '<span class="d-date">'+d.data+' <small style="color:var(--muted)">'+d.dw+'</small></span>'+
+    '<span class="d-badge '+d.badge+'">'+d.tipo+'</span>'+
+    (isToday?'<span class="today-tag">HOJE</span>':'')+
+    '<span class="d-qinfo" style="margin-left:auto">'+(d.qm>0?(s.questoes||0)+'/'+d.qm+'q':'—')+'</span>'+
+    '<div class="d-dots">'+d.blc.map((_,i)=>'<div class="dot '+(s.blocos[i]?'done':'')+'"></div>').join('')+'</div>'+
+    '<span class="chevron">▾</span>';
+  hdr.onclick=()=>toggleCard(d.dia);
+  div.appendChild(hdr);
+
+  const body=document.createElement('div');
+  body.className='day-body';
+
+  d.blc.forEach((txt,i)=>{
+    const bl=document.createElement('div');
+    bl.className='bloco'+(s.blocos[i]?' bloco-done':'');
+    bl.id='bloco-'+d.dia+'-'+i;
+    const fileList=(FILES[d.dia+'-'+i]||[]);
+    const isQ=f=>f.includes('Questoes')||f.includes('Simulado')||f.includes('INDICE');
+    const shortName=f=>{
+      let n=f.replace('.md','').replace(/^\d+_/,'').replace(/_Feynman$/,'').replace(/_Avancadas$/,'').replace(/_Avancadas/,'').replace(/_/g,' ');
+      return n;
+    };
+    const fileHtml=fileList.length
+      ?'<div class="bloco-files">'+fileList.map(f=>'<span class="file-chip'+(isQ(f)?' q-chip':'')+'" onclick="openMatFile(\''+f+'\')" title="Material Teórico/'+f+'">📄 '+shortName(f)+'</span>').join('')+'</div>'
+      :'';
+    bl.innerHTML='<div class="bloco-top"><span class="bloco-n">B'+(i+1)+'</span><span class="bloco-txt">'+txt+'</span>'+
+      '<input type="checkbox" class="bloco-check" '+(s.blocos[i]?'checked':'')+' onchange="toggleBloco('+d.dia+','+i+',this.checked)"></div>'+
+      '<div class="bloco-actions"><button class="btn btn-ghost btn-sm timer-start-btn" data-dia="'+d.dia+'" data-bi="'+i+'" onclick="startBloco('+d.dia+','+i+')">⏱ 2h</button></div>'+
+      fileHtml;
+    body.appendChild(bl);
+  });
+
+  if(d.qm>0){
+    const qpct=Math.min(100,Math.round(((s.questoes||0)/d.qm)*100));
+    const qrow=document.createElement('div');
+    qrow.style.cssText='display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.78rem;color:var(--muted)';
+    qrow.innerHTML='📊 Questões: <input type="number" class="q-input" min="0" max="'+(d.qm*2)+'" value="'+(s.questoes||0)+'" id="qinput-'+d.dia+'" onchange="updateQuestoes('+d.dia+',+this.value)">'+
+      '<span style="color:var(--muted)">/ '+d.qm+' meta</span>'+
+      '<div class="q-bar-bg" style="flex:1"><div class="q-bar-fill" id="qbar-'+d.dia+'" style="width:'+qpct+'%"></div></div>'+
+      '<span id="qpct-'+d.dia+'" style="font-size:.72rem;color:'+(qpct>=100?'var(--green)':'var(--muted)')+'">'+qpct+'%</span>';
+    body.appendChild(qrow);
+  }
+
+  const nw=document.createElement('div');
+  nw.className='notas-wrap';
+  nw.innerHTML='<div class="notas-lbl">📝 Caderno de Erros</div>'+
+    '<textarea class="notas-ta" id="notas-'+d.dia+'" placeholder="Anote erros e conceitos a revisar…" oninput="updateNotas('+d.dia+',this.value)">'+escHtml(s.notas||'')+'</textarea>';
+  body.appendChild(nw);
+
+  const ft=document.createElement('div');
+  ft.className='day-footer';
+  ft.innerHTML='<div class="revisao-txt">🔁 Revisão: <b>'+d.rev+'</b></div>'+
+    '<button class="btn btn-sm '+(isDone?'btn-done':'btn-green')+'" id="btn-done-'+d.dia+'" onclick="marcarDia('+d.dia+')">'+(isDone?'✅ Concluído':'✔ Marcar concluído')+'</button>';
+  body.appendChild(ft);
+  div.appendChild(body);
+  return div;
+}
+
+function toggleCard(dia){
+  const card=document.querySelector('.day-card[data-dia="'+dia+'"]');
+  if(card) card.classList.toggle('expanded');
+}
+
+function toggleBloco(dia,bi,checked){
+  STATE[dia].blocos[bi]=checked;
+  const bloco=document.getElementById('bloco-'+dia+'-'+bi);
+  if(bloco) bloco.classList.toggle('bloco-done',checked);
+  updateDots(dia);
+  saveState();renderStats();
+}
+
+function updateDots(dia){
+  const s=STATE[dia];
+  const card=document.querySelector('.day-card[data-dia="'+dia+'"]');
+  if(!card) return;
+  card.querySelectorAll('.d-dots .dot').forEach((dot,i)=>{
+    dot.classList.toggle('done',!!s.blocos[i]);
+  });
+}
+
+function updateQuestoes(dia,val){
+  STATE[dia].questoes=Math.max(0,val);
+  const d=SCHEDULE.find(x=>x.dia===dia);
+  if(!d||d.qm===0) return;
+  const pct=Math.min(100,Math.round((val/d.qm)*100));
+  const bar=document.getElementById('qbar-'+dia);
+  const pctEl=document.getElementById('qpct-'+dia);
+  const hdrQ=document.querySelector('.day-card[data-dia="'+dia+'"] .d-qinfo');
+  if(bar) bar.style.width=pct+'%';
+  if(pctEl){pctEl.textContent=pct+'%';pctEl.style.color=pct>=100?'var(--green)':'var(--muted)';}
+  if(hdrQ) hdrQ.textContent=val+'/'+d.qm+'q';
+  saveState();renderStats();
+}
+
+let notasTimeout={};
+function updateNotas(dia,txt){
+  STATE[dia].notas=txt;
+  clearTimeout(notasTimeout[dia]);
+  notasTimeout[dia]=setTimeout(()=>saveState(),800);
+}
+
+function marcarDia(dia){
+  if(STATE[dia].done) return;
+  STATE[dia].done=true;
+  STATE[dia].blocos=[true,true,true];
+  const card=document.querySelector('.day-card[data-dia="'+dia+'"]');
+  if(card){
+    card.classList.add('is-done');
+    card.querySelectorAll('.dot').forEach(d=>d.classList.add('done'));
+    card.querySelectorAll('.bloco-check').forEach(c=>c.checked=true);
+    card.querySelectorAll('.bloco').forEach(b=>b.classList.add('bloco-done'));
+    const btn=document.getElementById('btn-done-'+dia);
+    if(btn){btn.className='btn btn-sm btn-done';btn.textContent='✅ Concluído';}
+  }
+  saveState();renderStats();
+  const d=SCHEDULE.find(x=>x.dia===dia);
+  toast('✅ Dia '+dia+' ('+d.data+') concluído!','ok');
+}
+
+function openCaderno(){
+  const body=document.getElementById('caderno-body');
+  const entries=SCHEDULE.filter(d=>(STATE[d.dia]?.notas||'').trim());
+  if(!entries.length){
+    body.innerHTML='<div class="cad-vazio">Nenhuma anotação ainda.<br>Use o campo "Caderno de Erros" em cada dia.</div>';
+  } else {
+    body.innerHTML=entries.map(d=>'<div class="cad-entry"><div class="cad-dia">Dia '+d.dia+' · '+d.data+' · '+d.tipo+'</div><div class="cad-txt">'+escHtml(STATE[d.dia].notas)+'</div></div>').join('');
+  }
+  document.getElementById('modal-caderno').classList.add('open');
+}
+
+function closeCaderno(){document.getElementById('modal-caderno').classList.remove('open');}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+let toastTimer;
+function toast(msg,type='info',dur=2800){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show t-'+type;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.className='toast',3500);
+}
+
+document.getElementById('modal-caderno').addEventListener('click',e=>{
+  if(e.target.id==='modal-caderno') closeCaderno();
+});
+
+const ABRIR_PORT=7979;
+let _serverOk=null;
+(function pingServer(){
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),1200);
+  fetch('http://localhost:'+ABRIR_PORT+'/ping',{mode:'no-cors',signal:ctrl.signal})
+    .then(()=>{clearTimeout(tid);_serverOk=true;})
+    .catch(()=>{clearTimeout(tid);_serverOk=false;});
+})();
+
+function openMatFile(filename){
+  const img=new Image();
+  const ts=Date.now();
+  const url='http://localhost:'+ABRIR_PORT+'/open?f='+encodeURIComponent(filename)+'&_='+ts;
+  const short=filename.replace('.md','').replace(/_/g,' ').replace(/^\d+\s*/,'').trim();
+  const timer=setTimeout(()=>{img.onload=img.onerror=null;fallbackFile(filename,short);},1500);
+  img.onload=function(){clearTimeout(timer);_serverOk=true;toast('📂 '+short,'ok');};
+  img.onerror=function(){clearTimeout(timer);if(_serverOk!==false){_serverOk=true;toast('📂 '+short,'ok');}else fallbackFile(filename,short);};
+  img.src=url;
+}
+
+function fallbackFile(filename,short){
+  short=short||filename.replace('.md','').replace(/_/g,' ');
+  let fpath='';
+  if(window.location.protocol==='file:'){
+    const base=window.location.href.replace(/\/[^\/]+$/,'').replace(/\/[^\/]+$/,'').replace(/^file:\/\//,'').replace(/%20/g,' ');
+    fpath=base+'/Material Teorico/'+filename;
+  }
+  showFileModal(filename,short,fpath);
+}
+
+function showFileModal(filename,short,fpath){
+  let m=document.getElementById('modal-file');
+  if(!m){
+    m=document.createElement('div');m.id='modal-file';
+    m.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center;padding:20px';
+    m.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;max-width:560px;width:100%;padding:20px 22px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font-size:.9rem;font-weight:700;color:var(--accent)">📂 Abrir arquivo</span><button onclick="document.getElementById(\'modal-file\').style.display=\'none\'" style="background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer">✕</button></div><div id="mf-name" style="font-size:.82rem;color:var(--text);margin-bottom:10px"></div><div id="mf-path-wrap" style="display:none"><div style="font-size:.7rem;color:var(--muted);margin-bottom:4px">Caminho:</div><code id="mf-path" style="display:block;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:7px 9px;font-size:.68rem;color:var(--text);word-break:break-all;margin-bottom:10px"></code></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="mf-copy" class="btn btn-ghost btn-sm" onclick="copyFilePath()">📋 Copiar</button><button class="btn btn-primary btn-sm" onclick="document.getElementById(\'modal-file\').style.display=\'none\'">OK</button></div></div>';
+    document.body.appendChild(m);
+  }
+  document.getElementById('mf-name').textContent=short+'.md';
+  const pw=document.getElementById('mf-path-wrap'),pp=document.getElementById('mf-path');
+  if(fpath){pw.style.display='block';pp.textContent=fpath;m._path=fpath;}
+  else{pw.style.display='none';m._path='';}
+  m.style.display='flex';
+  if(fpath) navigator.clipboard.writeText(fpath).catch(()=>{});
+}
+
+function copyFilePath(){
+  const m=document.getElementById('modal-file');
+  if(m&&m._path) navigator.clipboard.writeText(m._path).then(()=>toast('📋 Copiado!','ok')).catch(()=>toast('Selecione manualmente','info'));
+}
+
+loadState();
+renderApp();
+if(STATE.timer.running) startTimerInterval();
+setInterval(updateCountdown,60000);
+</script>
+</body>
+</html>
